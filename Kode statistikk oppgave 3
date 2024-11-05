@@ -1,0 +1,61 @@
+import numpy as np
+from scipy import stats
+import matplotlib.pyplot as plt
+import pandas as pd
+import seaborn as sns
+import statistics
+
+
+#Data for kjeks laget med egg og uten egg
+egg = [11.2, 12.3, 11.5, 12.0, 11.8, 11.4, 11.0]
+uten_egg = [9.3, 9.6, 9.0, 9.2, 9.5, 9.6, 9.4]
+
+#Beregn gjennomsnitt og standardavvik for begge grupper
+n1 = len(egg)
+n2 = len(uten_egg)
+
+mean_egg = statistics.mean(egg)
+mean_uten_egg = statistics.mean(uten_egg)
+
+sd_egg = statistics.stdev(egg)
+sd_uten_egg = statistics.stdev(uten_egg)
+
+print(f"Gjennomsnitt diameter med egg: {round(mean_egg, 3)} cm")
+print(f"Gjennomsnitt diameter uten egg: {round(mean_uten_egg, 3)} cm")
+
+print(f"Standardavvik diameter med egg: {round(sd_egg, 3)} cm")
+print(f"Standardavvik diameter uten egg: {round(sd_uten_egg, 3)} cm")
+
+# Beregn frihetsgrader (ny)
+ny = (sd_egg**2/n1 + sd_uten_egg**2/n2)**2 / ((sd_egg**2/n1)**2/(n1-1) + (sd_uten_egg**2/n2)**2/(n2-1))
+print("Antall frihetsgrader (ny) = ", round(ny, 3))
+
+#Beregn kritisk verdi
+alpha = 0.05
+t_kritisk = stats.t.ppf(1 - alpha / 2, ny)  # to-sidig test
+print("Kritisk t-verdi ved alfa = 0.05: ", round(t_kritisk, 3))
+
+#Gjennomfør t-test
+t_statistic, p_value = stats.ttest_ind_from_stats(mean_egg, sd_egg, n1, mean_uten_egg, sd_uten_egg, n2, equal_var=False)
+print("Beregnet t-verdi: ", round(t_statistic, 3))
+print("P-verdi: ", round(p_value, 4))
+
+#Visualisering med boksplott
+data = pd.DataFrame({
+    'Diameter (cm)': egg + uten_egg,
+    'Gruppe': ['Med egg'] * len(egg) + ['Uten egg'] * len(uten_egg)
+})
+
+plt.figure(figsize=(10, 6))
+sns.boxplot(x='Gruppe', y='Diameter (cm)', data=data)
+plt.title('Sammenligning av diameter på kjeks med og uten egg')
+plt.xlabel('Gruppe')
+plt.ylabel('Diameter (cm)')
+plt.grid()
+plt.show()
+
+#Konklusjon
+if abs(t_statistic) > t_kritisk:
+    print("Vi forkaster nullhypotesen H0. Det er en signifikant forskjell i gjennomsnittlig diameter mellom kjeksene med og uten egg.")
+else:
+    print("Vi kan ikke forkaste nullhypotesen H0. Det er ingen signifikant forskjell i gjennomsnittlig diameter mellom kjeksene med og uten egg.")
